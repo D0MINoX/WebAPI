@@ -51,8 +51,8 @@ public class AuthController : ControllerBase
     
         return Ok(new { Token = tokenString });
     }
-
-    // Metoda do weryfikacji hasła (użyj BCrypt w produkcji!)
+    
+  
     private bool VerifyPassword(string password, string hash)
     {
        return BCrypt.Net.BCrypt.Verify(password, hash);

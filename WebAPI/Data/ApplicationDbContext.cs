@@ -10,6 +10,7 @@ namespace WebAPI.Data
         {
         }
 
-        public DbSet<User> Users { get; set; } // Przykład dla tabeli użytkowników
+        public DbSet<User> Users { get; set; } 
+        public DbSet<Meditation> Meditations { get; set; } 
     }
 }
