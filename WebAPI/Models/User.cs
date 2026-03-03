@@ -5,6 +5,7 @@
         public int Id { get; set; }
         public required string Username { get; set; }
         public required string PasswordHash { get; set; } 
-        public required int Role {  get; set; }
+        public  int Role {  get; set; }
+        public  int Rosary {  get; set; }
     }
 }
