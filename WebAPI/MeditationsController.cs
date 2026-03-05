@@ -23,11 +23,11 @@ namespace WebAPI
         }
 
         [HttpGet("search")]
-        public async Task<IActionResult> GetMeditationByDateAndTitle([FromQuery] DateTime date, [FromQuery] string title)
+        public async Task<IActionResult> GetMeditationByDateAndTitle([FromQuery] int date, [FromQuery] string title)
         {
          
             var meditation = await _context.Meditations
-                .Where(m => m.Date.Date == date.Date && m.Title.ToLower() == title.ToLower())
+                .Where(m => m.Date == date && m.Title.ToLower() == title.ToLower())
                 .Select(m=>m.Content)
                 .FirstOrDefaultAsync();
 

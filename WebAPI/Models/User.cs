@@ -6,6 +6,7 @@
         public required string Username { get; set; }
         public required string PasswordHash { get; set; } 
         public  int Role {  get; set; }
-        public  int Rosary {  get; set; }
+        public virtual ICollection<UsersRosary> UserRosaries { get; set; }
+
     }
 }
