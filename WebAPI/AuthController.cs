@@ -1,4 +1,5 @@
 ﻿using BCrypt.Net;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -51,6 +52,24 @@ public class AuthController : ControllerBase
     
         return Ok(new { Token = tokenString });
     }
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+    {
+        if (await _context.Users.AnyAsync(u => u.Username == request.Username))
+            return BadRequest("Użytkownik o tej nazwie już istnieje.");
+
+        string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
+        var newUser = new User
+        {
+            Username = request.Username,
+            PasswordHash = hashedPassword,
+            Role = 3
+        };
+        _context.Users.Add(newUser);
+        await _context.SaveChangesAsync();
+        return Ok(new { message = "Konto zostało utworzone pomyślnie!" });
+    }
+    
     
   
     private bool VerifyPassword(string password, string hash)
