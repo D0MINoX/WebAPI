@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebAPI.Data;
+using WebAPI.Models;
 
 namespace WebAPI
 {
@@ -37,5 +38,41 @@ namespace WebAPI
 
             return Ok(names);
         }
+        [HttpGet("rosaries")]
+        public async Task<ActionResult<IEnumerable<object>>> GetAllRosaryNames()
+        {
+
+            var names = await _context.Rosary
+                
+                .Select(ur => new
+                {
+                    Id = ur.Id,
+                    Name = ur.Name
+                })
+                .ToListAsync();
+
+            if (names == null || !names.Any())
+            {
+                return NotFound();
+            }
+
+            return Ok(names);
+        }
+
+        [HttpPost("JoinRosary")]
+        public async Task<ActionResult<IEnumerable<bool>>> JoinRosary([FromBody] RosaryJoinRequest request)
+        {
+            if (await _context.UsersRosary.AnyAsync(u => u.RosaryId == request.RosaryId && u.UserId == request.UserId))
+                return BadRequest("użytkownik już został wpisany do tej róży");
+            var newRosaryConn = new UsersRosary
+            {
+                UserId = request.UserId,
+                RosaryId = request.RosaryId
+            };
+            _context.UsersRosary.Add(newRosaryConn);
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Dodano użytkownika do róży" });
+        }        
     }
+
 }
