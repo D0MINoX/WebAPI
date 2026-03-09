@@ -72,7 +72,10 @@ namespace WebAPI
             _context.UsersRosary.Add(newRosaryConn);
             await _context.SaveChangesAsync();
             return Ok(new { message = "Dodano użytkownika do róży" });
-        }        
+        }
+
+      
     }
+   
 
 }
