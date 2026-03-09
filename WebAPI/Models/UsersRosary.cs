@@ -5,6 +5,7 @@
         public int Id { get; set; }
         public int UserId { get; set; }
         public int RosaryId { get; set; }
+        public bool isAuthorized {  get; set; }
 
         // Właściwości nawigacyjne - to one pozwalają na "ur.Rosary.Name"
         public virtual User User { get; set; }

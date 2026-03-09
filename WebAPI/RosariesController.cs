@@ -23,7 +23,7 @@ namespace WebAPI
            
             var names = await _context.UsersRosary
                 .Include(ur => ur.Rosary)
-                .Where(ur => ur.UserId == userId)
+                .Where(ur => ur.UserId == userId && ur.isAuthorized)
                 .Select(ur => new
                 {
                     Id = ur.RosaryId,
