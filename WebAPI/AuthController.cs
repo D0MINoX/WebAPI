@@ -61,6 +61,8 @@ public class AuthController : ControllerBase
         string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
         var newUser = new User
         {
+            Name = request.Name,
+            Surname = request.Surname,
             Username = request.Username,
             PasswordHash = hashedPassword,
             Role = 3
