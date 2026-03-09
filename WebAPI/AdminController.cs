@@ -38,5 +38,35 @@ namespace WebAPI
 
             return Ok(names);
         }
+        [HttpPut("{userId}/Authorization/{rosaryId}")]
+        public async Task<IActionResult> UserAuthorization(int userId,int rosaryId)
+        {
+            var membership = await _context.UsersRosary.FirstOrDefaultAsync(ur=>ur.UserId==userId && ur.RosaryId==rosaryId);
+
+            if (membership == null)
+                return NotFound("Nie znaleziono takiego powiązania.");
+
+            
+            membership.isAuthorized = true;
+
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Użytkownik został pomyślnie zweryfikowany!" });
+        }
+        [HttpDelete("delete-membership/{userId}/{rosaryId}")]
+        public async Task<IActionResult> DeleteMembership(int userId, int rosaryId)
+        {
+           
+            var membership = await _context.UsersRosary
+                .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RosaryId == rosaryId);
+
+            if (membership == null)
+                return NotFound("Nie znaleziono takiego powiązania.");
+
+           
+            _context.UsersRosary.Remove(membership);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Użytkownik został usunięty z róży." });
+        }
     }
 }
