@@ -46,6 +46,7 @@ builder.Services.AddCors(options =>
         });
 });
 var app = builder.Build();
+app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 if (app.Environment.IsDevelopment())
@@ -53,10 +54,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseCors("AllowAll");
-app.UseHttpsRedirection();
 
-app.UseAuthorization();
+//app.UseHttpsRedirection();
 app.MapControllers();
 
 app.Run();
