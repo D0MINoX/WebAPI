@@ -38,15 +38,35 @@ namespace WebAPI
 
             return Ok(names);
         }
-        [HttpPut("{userId}/Authorization/{rosaryId}")]
-        public async Task<IActionResult> UserAuthorization(int userId,int rosaryId)
+        [HttpGet("zelatorsShow")]
+        public async Task<IActionResult> ZelatorsShow()
         {
-            var membership = await _context.UsersRosary.FirstOrDefaultAsync(ur=>ur.UserId==userId && ur.RosaryId==rosaryId);
+            var names = await _context.Users
+                .Where(ur => ur.Role == 2)
+                .Select(ur => new
+                {
+                    UserId = ur.Id,
+                    UserName = ur.Name,
+                    UserSurname = ur.Surname,
+                })
+                .ToListAsync();
+
+            if (names == null || !names.Any())
+            {
+                return NotFound("API: nie znaleziono");
+            }
+
+            return Ok(names);
+        }
+        [HttpPut("{userId}/Authorization/{rosaryId}")]
+        public async Task<IActionResult> UserAuthorization(int userId, int rosaryId)
+        {
+            var membership = await _context.UsersRosary.FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RosaryId == rosaryId);
 
             if (membership == null)
                 return NotFound("Nie znaleziono takiego powiązania.");
 
-            
+
             membership.isAuthorized = true;
 
             await _context.SaveChangesAsync();
@@ -55,18 +75,54 @@ namespace WebAPI
         [HttpDelete("delete-membership/{userId}/{rosaryId}")]
         public async Task<IActionResult> DeleteMembership(int userId, int rosaryId)
         {
-           
+
             var membership = await _context.UsersRosary
                 .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RosaryId == rosaryId);
 
             if (membership == null)
                 return NotFound("Nie znaleziono takiego powiązania.");
 
-           
+
             _context.UsersRosary.Remove(membership);
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Użytkownik został usunięty z róży." });
         }
+
+        [HttpPost("AddRosary")]
+        public async Task<IActionResult> AddRosary([FromBody] RosaryAddRrquest request)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try {
+                var newRosary = new Rosary
+                {
+                    Name = request.Name,
+                    Parish = request.Parish
+                };
+                _context.Rosary.Add(newRosary);
+                await _context.SaveChangesAsync();
+                var userIdsToAdd = await _context.Users
+                .Where(u => u.Role == 0 || u.Role == 1 || u.Id == request.ZelatorsId)
+                .Select(u => u.Id)
+                .Distinct()
+                .ToListAsync();
+                var links = userIdsToAdd.Select(userId => new UsersRosary
+                {
+                    RosaryId = newRosary.Id,
+                    UserId = userId
+                }).ToList();
+
+                _context.UsersRosary.AddRange(links);
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return Ok(new { message = "Utworzono różę" });
+            }catch(Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return BadRequest($"Błąd: {ex.Message}");
+            }
+        }
     }
 }
+    
