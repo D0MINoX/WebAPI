@@ -135,6 +135,42 @@ namespace WebAPI
             await _context.SaveChangesAsync();
             return Ok(new { message = "zmieniono treść rozważania" });
         }
+        [HttpGet("usersShow/{UserRole}")]
+        public async Task<IActionResult> UsersPrivilagiesShow(int UserRole)
+        {
+            var users = await _context.Users
+                .Where(ur => ur.Role>=UserRole)
+                .Select(ur => new
+                {
+                    UserId = ur.Id,
+                    UserName = ur.Name,
+                    UserSurname = ur.Surname,
+                    UserEmail = ur.Username,
+                    UserRole = ur.Role
+                    
+                })
+                .ToListAsync();
+
+            if (users == null || !users.Any())
+            {
+                return NotFound("API: nie znaleziono");
+            }
+
+            return Ok(users);
+        }
+
+        [HttpPut("UpdateRole")]
+        public async Task<IActionResult> updateRole ([FromBody]UpdateUserRequest request)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(ur => ur.Id==request.Id);
+            if (user == null)
+            {
+                return NotFound("Błąd bazy danych");
+            }
+            user.Role = request.Role;
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "zmieniono uprawnienia" });
+        }
     }
 }
     
