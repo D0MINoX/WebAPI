@@ -124,6 +124,17 @@ namespace WebAPI
                 return BadRequest($"Błąd: {ex.Message}");
             }
         }
+        [HttpPut("ModifyMeditation")]
+        public async Task<IActionResult> ModifyMeditation([FromBody] Meditation request) {
+            var Meditation = await _context.Meditations.FirstOrDefaultAsync(ur => ur.Title == request.Title && ur.Date==request.Date);
+            if (Meditation == null)
+            {
+                return NotFound("Błąd bazy danych");
+            }
+            Meditation.Content = request.Content;
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "zmieniono treść rozważania" });
+        }
     }
 }
     
