@@ -109,7 +109,8 @@ namespace WebAPI
                 var links = userIdsToAdd.Select(userId => new UsersRosary
                 {
                     RosaryId = newRosary.Id,
-                    UserId = userId
+                    UserId = userId,
+                    isAuthorized = true
                 }).ToList();
 
                 _context.UsersRosary.AddRange(links);
