@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using WebAPI.Models; // Upewnij się, że masz folder Models
+using WebAPI.Models;
 
 namespace WebAPI.Data
 {
@@ -17,7 +17,6 @@ namespace WebAPI.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            // Konfiguracja relacji dla tabeli łączącej
             modelBuilder.Entity<UsersRosary>()
                 .HasOne(ur => ur.User)
                 .WithMany(u => u.UserRosaries)
