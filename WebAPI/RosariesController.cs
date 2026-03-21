@@ -74,8 +74,22 @@ namespace WebAPI
             return Ok(new { message = "Dodano użytkownika do róży" });
         }
 
-      
-    }
-   
+        [HttpGet("rosary/{RosaryId}/Name")]
+        public async Task<IActionResult> RosaryName(int RosaryId) {
+            var names = await _context.Rosary
+                .Where(ur => ur.Id == RosaryId)
+                .Select(ur => new
+                {
+                    Name = ur.Name
+                }).FirstOrDefaultAsync();
+            
+            if (names == null)
+            {
+                return NotFound();
+            }
 
+            return Ok(names);
+        }
+    }
 }
+   

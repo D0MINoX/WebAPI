@@ -28,7 +28,11 @@ namespace WebAPI
          
             var meditation = await _context.Meditations
                 .Where(m => m.Date == date && m.Title.ToLower() == title.ToLower())
-                .Select(m=>m.Content)
+                .Select(m => new {
+                    m.Content,
+                    m.Link
+                
+                })
                 .FirstOrDefaultAsync();
 
             if (meditation == null)
