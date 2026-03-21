@@ -15,6 +15,7 @@ namespace WebAPI.Data
         public DbSet<Rosary> Rosary { get; set; }
         public DbSet<UsersRosary> UsersRosary { get; set; }
         public DbSet<RosaryMessages> RosaryMessages { get; set; }
+        public DbSet<Parish> Parishes { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -22,7 +23,10 @@ namespace WebAPI.Data
                 .HasOne(ur => ur.User)
                 .WithMany(u => u.UserRosaries)
                 .HasForeignKey(ur => ur.UserId);
-
+            modelBuilder.Entity<Rosary>()
+                .HasOne(r => r.Parish)
+                .WithMany() 
+                .HasForeignKey(r => r.ParishValue);
             modelBuilder.Entity<UsersRosary>()
                 .HasOne(ur => ur.Rosary)
                 .WithMany(r => r.UsersRosary)

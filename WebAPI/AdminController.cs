@@ -97,7 +97,7 @@ namespace WebAPI
                 var newRosary = new Rosary
                 {
                     Name = request.Name,
-                    Parish = request.Parish
+                    ParishValue = request.Parish
                 };
                 _context.Rosary.Add(newRosary);
                 await _context.SaveChangesAsync();

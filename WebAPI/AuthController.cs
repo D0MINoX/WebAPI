@@ -65,6 +65,7 @@ public class AuthController : ControllerBase
             Surname = request.Surname,
             Username = request.Username,
             PasswordHash = hashedPassword,
+            Parish = request.Parish,
             Role = 3
         };
         _context.Users.Add(newUser);
