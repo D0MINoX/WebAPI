@@ -47,5 +47,13 @@ namespace WebAPI
                 return BadRequest($"Błąd: {ex.Message}");
             }
         }
+        [HttpGet("GetExternalNumbers/{rosaryId}")]
+        public async Task<IActionResult> getExternalNumbers(int rosaryId)
+        {
+            var phoneNumbers = await _context.ExternalMembers.Where(ur=>ur.RosaryId==rosaryId).Select(ur => ur.PhoneNumber).ToListAsync();
+           
+                return Ok(phoneNumbers);
+          
+        }
     }
 }

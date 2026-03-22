@@ -16,6 +16,7 @@ namespace WebAPI.Data
         public DbSet<UsersRosary> UsersRosary { get; set; }
         public DbSet<RosaryMessages> RosaryMessages { get; set; }
         public DbSet<Parish> Parishes { get; set; }
+        public DbSet<ExternalMember> ExternalMembers { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

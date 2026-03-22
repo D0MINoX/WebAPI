@@ -1,4 +1,5 @@
 ﻿using BCrypt.Net;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -72,9 +73,25 @@ public class AuthController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok(new { message = "Konto zostało utworzone pomyślnie!" });
     }
-    
-    
-  
+
+    [HttpGet("CheckSmsPermission")]
+    [Authorize]
+    public async Task<IActionResult> CheckSmsPermission()
+    {
+
+        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!int.TryParse(userIdStr, out int userId)) return Unauthorized();
+
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return NotFound();
+
+        return Ok(new
+        {
+            CanSend = user.Role <= 2 && user.canSendSMS
+        });
+    }
+
     private bool VerifyPassword(string password, string hash)
     {
        return BCrypt.Net.BCrypt.Verify(password, hash);
