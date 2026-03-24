@@ -27,6 +27,7 @@ namespace WebAPI
                     UserName = ur.User.Name,
                     UserSurname = ur.User.Surname,
                     RosaryName = ur.Rosary.Name,
+                    
                     IsAuthorized = ur.isAuthorized
                 })
                 .ToListAsync();
@@ -147,7 +148,8 @@ namespace WebAPI
                     UserName = ur.Name,
                     UserSurname = ur.Surname,
                     UserEmail = ur.Username,
-                    UserRole = ur.Role
+                    UserRole = ur.Role,
+                    UserCanSendSMS= ur.canSendSMS
                     
                 })
                 .ToListAsync();
@@ -160,7 +162,7 @@ namespace WebAPI
             return Ok(users);
         }
 
-        [HttpPut("UpdateRole")]
+     /*   [HttpPut("UpdateRole")]
         public async Task<IActionResult> updateRole ([FromBody]UpdateUserRequest request)
         {
             var user = await _context.Users.FirstOrDefaultAsync(ur => ur.Id==request.Id);
@@ -171,6 +173,72 @@ namespace WebAPI
             user.Role = request.Role;
             await _context.SaveChangesAsync();
             return Ok(new { message = "zmieniono uprawnienia" });
+        }*/
+        [HttpGet("MainZelatorsShow")]
+        public async Task<IActionResult> MainZelatorsShow()
+        {
+            var names = await _context.Users
+                .Where(ur => ur.Role == 1&&ur.Parish==null)
+                .Select(ur => new
+                {
+                    UserId = ur.Id,
+                    UserName = ur.Name,
+                    UserSurname = ur.Surname,
+                })
+                .ToListAsync();
+
+            if (names == null || !names.Any())
+            {
+                return NotFound("API: nie znaleziono");
+            }
+
+            return Ok(names);
+        }
+        [HttpPost("AddParish")]
+        public async Task<IActionResult> AddParish([FromBody] ParishAddRequest request)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var newParish = new Parish
+                {
+                    Name = request.Name,
+             
+                };
+                _context.Parishes.Add(newParish);
+                await _context.SaveChangesAsync();
+                var zelator = await _context.Users.FindAsync(request.ZelatorsId);
+
+                if (zelator == null)
+                {
+                    await transaction.RollbackAsync();
+                    return NotFound("Nie znaleziono użytkownika o podanym Id Zelatora.");
+                }
+
+              
+                zelator.Parish = newParish.Id;
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+                return Ok(new { message = "Utworzono różę" });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return BadRequest($"Błąd: {ex.Message}");
+            }
+        }
+        [HttpPut("UpdatePermissions")]
+        public async Task<IActionResult> UpdatePermissions([FromBody] UpdateUserRequest request)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(ur => ur.Id == request.Id);
+            if (user == null) return NotFound();
+
+            user.Role = request.Role;
+            user.canSendSMS = request.CanSendSMS; 
+
+            await _context.SaveChangesAsync();
+            return Ok();
         }
     }
 }
