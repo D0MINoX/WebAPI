@@ -23,24 +23,38 @@ namespace WebAPI
         }
 
         [HttpGet("search")]
-        public async Task<IActionResult> GetMeditationByDateAndTitle([FromQuery] int date, [FromQuery] string title)
+        public async Task<IActionResult> GetMeditationByDateAndTitle([FromQuery] int? date, [FromQuery] string title)
         {
-         
-            var meditation = await _context.Meditations
-                .Where(m => m.Date == date && m.Title.ToLower() == title.ToLower())
+            if (string.IsNullOrEmpty(title))
+            {
+                return BadRequest("Tytuł (tajemnica) jest wymagany.");
+            }
+            var query = _context.Meditations
+        .Where(m => m.Title.ToLower() == title.ToLower());
+          
+            if (date.HasValue && date > 0)
+            {
+                var meditation = await query
+                    .Select(m => new {
+                        m.Date, 
+                        m.Content,
+                        m.Link
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (meditation == null) return NotFound("Brak rozważania na wybrany dzień.");
+                return Ok(new List<object> { meditation });
+            }
+            var allMeditations = await query
+                .OrderBy(m => m.Date)
                 .Select(m => new {
+                    m.Date,
                     m.Content,
                     m.Link
-                
                 })
-                .FirstOrDefaultAsync();
+                .ToListAsync();
 
-            if (meditation == null)
-            {
-                return NotFound("Brak rozważania na wybrany dzień.");
-            }
-
-            return Ok(meditation);
+            return Ok(allMeditations);
         }
     }
 }
