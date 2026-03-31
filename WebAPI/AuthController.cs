@@ -58,20 +58,40 @@ public class AuthController : ControllerBase
     {
         if (await _context.Users.AnyAsync(u => u.Username == request.Username))
             return BadRequest("Użytkownik o tej nazwie już istnieje.");
-
-        string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
-        var newUser = new User
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
         {
-            Name = request.Name,
-            Surname = request.Surname,
-            Username = request.Username,
-            PasswordHash = hashedPassword,
-            Parish = request.Parish,
-            Role = 3
-        };
-        _context.Users.Add(newUser);
-        await _context.SaveChangesAsync();
-        return Ok(new { message = "Konto zostało utworzone pomyślnie!" });
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
+            var newUser = new User
+            {
+                Name = request.Name,
+                Surname = request.Surname,
+                Username = request.Username,
+                PasswordHash = hashedPassword,
+                Parish = request.Parish,
+                Role = 3
+            };
+            _context.Users.Add(newUser);
+            await _context.SaveChangesAsync();
+            var consent = new UserConsent
+            {
+                UserId = newUser.Id, 
+                ConsentType = "terms_and_privacy",
+                Status = "accepted",
+                DocumentVersion = "v1.0_2026-03",
+                IpAddress = request.UserIp ?? "unknown",
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.UserConsents.Add(consent);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            return Ok(new { message = "Konto zostało utworzone pomyślnie!" });
+        }catch (Exception ex)
+        {
+            
+            await transaction.RollbackAsync();
+            return StatusCode(500, $"Błąd: {ex.Message} | Inner: {ex.InnerException?.Message}");
+        }
     }
 
     [HttpGet("CheckSmsPermission")]

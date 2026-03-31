@@ -8,5 +8,6 @@
         public required string Password{ get; set; }
         public  int Role { get; set; }
         public int? Parish { get; set; }
+        public string UserIp { get; set; }
     }
 }
