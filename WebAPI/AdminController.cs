@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 using WebAPI.Data;
 using WebAPI.Models;
 
@@ -239,6 +240,28 @@ namespace WebAPI
 
             await _context.SaveChangesAsync();
             return Ok();
+        }
+        [HttpGet("ConsentsShow")]
+        public async Task<IActionResult> ConsentsShow()
+        {
+            var names = await _context.UserConsents
+                .Select(uc => new
+                {
+                    UserId = uc.UserId,
+                    ConsentType = uc.ConsentType,
+                    Status = uc.Status,
+                    DocumentVersion = uc.DocumentVersion,
+                    IpAddress = uc.IpAddress,
+                    CreatedAt = uc.CreatedAt
+                })
+                .ToListAsync();
+
+            if (names == null || !names.Any())
+            {
+                return NotFound("API: nie znaleziono");
+            }
+
+            return Ok(names);
         }
     }
 }
