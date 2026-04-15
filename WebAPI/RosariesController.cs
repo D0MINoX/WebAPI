@@ -38,31 +38,17 @@ namespace WebAPI
 
             return Ok(names);
         }
-        [HttpGet("available-rosaries/{userId}")]
-        public async Task<IActionResult> GetAvailableRosaries(int userId)
+        [HttpGet("available-rosaries/{parishId}")]
+        public async Task<IActionResult> GetAvailableRosaries(int parishId)
         {
           
-            var user = await _context.Users
-                .Where(u => u.Id == userId)
-                .Select(u => new { u.Parish })
-                .FirstOrDefaultAsync();
-
-            if (user == null) return NotFound("Użytkownik nie istnieje");
-
-            
-            var query = _context.Rosary.AsQueryable();
-
-            if (user.Parish.HasValue)
-            {
-                query = query.Where(r => r.ParishValue == user.Parish.Value);
-            }
-
-            // 4. Pobierz listę
-            var result = await query
+            var result = await _context.Rosary
+                .Where(r=> r.ParishValue==parishId)
                 .Select(r => new
                 {
                     Id = r.Id,
                     Name = r.Name
+
                 })
                 .ToListAsync();
 

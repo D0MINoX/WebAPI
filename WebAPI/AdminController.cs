@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 using WebAPI.Data;
 using WebAPI.Models;
 
@@ -237,6 +238,94 @@ namespace WebAPI
             user.Role = request.Role;
             user.canSendSMS = request.CanSendSMS; 
 
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+        [HttpGet("ConsentsShow")]
+        public async Task<IActionResult> ConsentsShow()
+        {
+            var names = await _context.UserConsents
+                .Select(uc => new
+                {
+                    UserId = uc.UserId,
+                    ConsentType = uc.ConsentType,
+                    Status = uc.Status,
+                    DocumentVersion = uc.DocumentVersion,
+                    IpAddress = uc.IpAddress,
+                    ExternalMemberId=uc.ExternalMemberId,
+                    CreatedAt = uc.CreatedAt
+                })
+                .ToListAsync();
+
+            if (names == null || !names.Any())
+            {
+                return NotFound("API: nie znaleziono");
+            }
+
+            return Ok(names);
+        }
+        [HttpDelete("deleteExternalNumber/{userId}/{rosaryId}")]
+        public async Task<IActionResult> DeleteExternalNumber(int userId, int rosaryId)
+        {
+
+            var membership = await _context.ExternalMembers
+                .FirstOrDefaultAsync(ur => ur.Id == userId && ur.RosaryId == rosaryId);
+
+            if (membership == null)
+                return NotFound("Nie znaleziono takiego powiązania.");
+
+
+            _context.ExternalMembers.Remove(membership);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Użytkownik został usunięty z róży." });
+        }
+        [HttpPost("AddExternalMember")]
+        public async Task<IActionResult> AddExternalMember([FromBody] ExternalMemberRequest request)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var newExMember = new ExternalMember
+                {
+                    Name = request.FirstName,
+                    Surname = request.LastName,
+                    PhoneNumber = request.PhoneNumber,
+                    RosaryId = request.RosaryId,
+                    CreatedAt = DateTime.Now
+
+                };
+                _context.ExternalMembers.Add(newExMember);
+                await _context.SaveChangesAsync();
+
+                var consent = new UserConsent
+                {
+                    ExternalMemberId = newExMember.Id,
+                    ConsentType = "sms_contact_consent",
+                    Status = "accepted",
+                    DocumentVersion = "v1.0_2026-03",
+                    IpAddress = request.UserIp ?? "unknown",
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.UserConsents.Add(consent);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return Ok(new { message = "Konto zostało utworzone pomyślnie!" });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return BadRequest($"Błąd: {ex.ToString()}");
+            }
+        }
+        [HttpPut("UpdateExternalMember")]
+        public async Task<IActionResult> UpdateExternalMember([FromBody] UpdateExternalMemberRequest request)
+        {
+            var user= await _context.ExternalMembers.FirstOrDefaultAsync(ur => ur.Id == request.Id);
+            if (user == null) return NotFound();
+            user.Name = request.Name;
+            user.Surname = request.Surname;
+            user.PhoneNumber = request.PhoneNumber;
             await _context.SaveChangesAsync();
             return Ok();
         }

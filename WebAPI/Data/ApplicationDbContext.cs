@@ -17,9 +17,11 @@ namespace WebAPI.Data
         public DbSet<RosaryMessages> RosaryMessages { get; set; }
         public DbSet<Parish> Parishes { get; set; }
         public DbSet<ExternalMember> ExternalMembers { get; set; }
+        public DbSet<UserConsent> UserConsents { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<UserConsent>().ToTable("user_consents");
             modelBuilder.Entity<UsersRosary>()
                 .HasOne(ur => ur.User)
                 .WithMany(u => u.UserRosaries)

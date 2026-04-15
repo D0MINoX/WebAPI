@@ -39,7 +39,7 @@ namespace WebAPI
                         m.Date, 
                         m.Content,
                         m.Link
-                    })
+                    }).Where(m=>m.Date==date)
                     .FirstOrDefaultAsync();
 
                 if (meditation == null) return NotFound("Brak rozważania na wybrany dzień.");

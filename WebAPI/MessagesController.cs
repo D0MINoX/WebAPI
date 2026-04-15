@@ -55,5 +55,13 @@ namespace WebAPI
                 return Ok(phoneNumbers);
           
         }
+        [HttpGet("GetAdminExternalNumbers/{rosaryId}")]
+        public async Task<IActionResult> getAdminExternalNumbers(int rosaryId)
+        {
+            var phoneNumbers = await _context.ExternalMembers.Where(ur => ur.RosaryId == rosaryId).ToListAsync();
+
+            return Ok(phoneNumbers);
+
+        }
     }
 }
