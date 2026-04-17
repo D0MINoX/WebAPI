@@ -42,6 +42,7 @@ public class AuthController : ControllerBase
             new Claim(ClaimTypes.Name, user.Name+" "+user.Surname),
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Role, user.Role.ToString()),
+            new Claim(ClaimTypes.Email,user.Username.ToString())
            
         }),
             Expires = DateTime.UtcNow.AddYears(1), 
@@ -116,5 +117,95 @@ public class AuthController : ControllerBase
     {
        return BCrypt.Net.BCrypt.Verify(password, hash);
  
+    }
+    [HttpPut("Edit")]
+    public async Task<IActionResult> Edit([FromBody] EditRequest request) {
+        var User = await _context.Users.FirstOrDefaultAsync(ur => ur.Id == request.id);
+        if (User == null)
+        {
+            return NotFound("Błąd bazy danych");
+        }
+        User.Name = request.Name;
+        User.Surname = request.Surname;
+        User.Username = request.Email;
+        await _context.SaveChangesAsync();
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.ASCII.GetBytes(_configuration["JwtSettings:SecretKey"]);
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(new[]
+            {
+            new Claim(ClaimTypes.Name, User.Name + " " + User.Surname),
+            new Claim(ClaimTypes.NameIdentifier, User.Id.ToString()),
+            new Claim(ClaimTypes.Role, User.Role.ToString()),
+            new Claim(ClaimTypes.Email, User.Username)
+        }),
+            Expires = DateTime.UtcNow.AddYears(1),
+            SigningCredentials = new SigningCredentials(
+                new SymmetricSecurityKey(key),
+                SecurityAlgorithms.HmacSha256Signature)
+        };
+
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        var tokenString = tokenHandler.WriteToken(token);
+
+        return Ok(new
+        {
+            token = tokenString
+        });
+    }
+    [HttpPut("changePassword")]
+    public async Task<IActionResult> ChangePassword([FromBody] EditPasswordRequest request)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == request.Id);
+
+        if (user == null || !VerifyPassword(request.OldPassword, user.PasswordHash))
+        {
+            return Unauthorized("Nieprawidłowe hasło");
+        }
+        else
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+                user.PasswordHash = hashedPassword;
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return Ok(new { message = "Hasło zostało pomyślnie zmienione" });
+            }
+            catch (Exception ex)
+            {
+
+                await transaction.RollbackAsync();
+                return StatusCode(500, $"Błąd: {ex.Message} | Inner: {ex.InnerException?.Message}");
+            }
+        }
+    }
+    [HttpDelete("delete")]
+    public async Task<IActionResult> DeleteAccount([FromBody] DeleteRequest request)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == request.Id);
+
+        if (user == null || !VerifyPassword(request.Password, user.PasswordHash))
+        {
+            return Unauthorized("Nieprawidłowe hasło");
+        }
+        else
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return Ok(new { message = "Konto zostało usunięte" });
+            }catch(Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return StatusCode(500, $"Błąd: {ex.Message} | Inner: {ex.InnerException?.Message}");
+            }
+        }
     }
 }

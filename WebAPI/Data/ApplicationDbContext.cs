@@ -21,19 +21,24 @@ namespace WebAPI.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<UserConsent>().ToTable("user_consents");
+            modelBuilder.Entity<UserConsent>()
+             .ToTable("user_consents");
+
             modelBuilder.Entity<UsersRosary>()
                 .HasOne(ur => ur.User)
                 .WithMany(u => u.UserRosaries)
-                .HasForeignKey(ur => ur.UserId);
+                .HasForeignKey(ur => ur.UserId)
+                .OnDelete(DeleteBehavior.Cascade) ;
             modelBuilder.Entity<Rosary>()
                 .HasOne(r => r.Parish)
                 .WithMany() 
-                .HasForeignKey(r => r.ParishValue);
+                .HasForeignKey(r => r.ParishValue)
+                .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<UsersRosary>()
                 .HasOne(ur => ur.Rosary)
                 .WithMany(r => r.UsersRosary)
-                .HasForeignKey(ur => ur.RosaryId);
+                .HasForeignKey(ur => ur.RosaryId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
