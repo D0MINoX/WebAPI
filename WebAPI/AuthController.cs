@@ -20,7 +20,7 @@ public class AuthController : ControllerBase
         _context = context;
         _configuration = configuration;
     }
-
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
@@ -54,6 +54,7 @@ public class AuthController : ControllerBase
     
         return Ok(new { Token = tokenString });
     }
+    [AllowAnonymous]
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
@@ -96,7 +97,6 @@ public class AuthController : ControllerBase
     }
 
     [HttpGet("CheckSmsPermission")]
-    [Authorize]
     public async Task<IActionResult> CheckSmsPermission()
     {
 
