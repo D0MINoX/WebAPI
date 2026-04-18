@@ -1,4 +1,5 @@
 ﻿using BCrypt.Net;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -21,7 +22,7 @@ namespace WebAPI
             _context = context;
             _configuration = configuration;
         }
-
+        [AllowAnonymous]
         [HttpGet("search")]
         public async Task<IActionResult> GetMeditationByDateAndTitle([FromQuery] int? date, [FromQuery] string title)
         {
