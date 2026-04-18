@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebAPI.Data;
 using WebAPI.Models;
@@ -17,7 +18,7 @@ namespace WebAPI
             _context = context;
             _configuration = configuration;
         }
-
+        [AllowAnonymous]
         [HttpGet("getAllParish")]
         public async Task<IActionResult> GetParish()
         {
@@ -33,6 +34,7 @@ namespace WebAPI
             }
             return Ok(parish);
         }
+        [AllowAnonymous]
         [HttpGet("getUserParish/{UserId}")]
         public async Task<IActionResult> GetUserParish(int UserId)
         {

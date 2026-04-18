@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 using WebAPI.Data;
@@ -17,6 +18,7 @@ namespace WebAPI
             _context = context;
             _configuration = configuration;
         }
+        [Authorize(Roles = "0,1,2")]
         [HttpGet("{rosaryId}/usersShow")]
         public async Task<IActionResult> UserShow(int rosaryId)
         {
@@ -40,6 +42,7 @@ namespace WebAPI
 
             return Ok(names);
         }
+        [Authorize(Roles = "0,1")]
         [HttpGet("zelatorsShow")]
         public async Task<IActionResult> ZelatorsShow()
         {
@@ -60,6 +63,7 @@ namespace WebAPI
 
             return Ok(names);
         }
+        [Authorize(Roles = "0,1,2")]
         [HttpPut("{userId}/Authorization/{rosaryId}")]
         public async Task<IActionResult> UserAuthorization(int userId, int rosaryId)
         {
@@ -74,6 +78,7 @@ namespace WebAPI
             await _context.SaveChangesAsync();
             return Ok(new { message = "Użytkownik został pomyślnie zweryfikowany!" });
         }
+        [Authorize(Roles = "0,1,2")]
         [HttpDelete("delete-membership/{userId}/{rosaryId}")]
         public async Task<IActionResult> DeleteMembership(int userId, int rosaryId)
         {
@@ -90,7 +95,7 @@ namespace WebAPI
 
             return Ok(new { message = "Użytkownik został usunięty z róży." });
         }
-
+        [Authorize(Roles = "0,1")]
         [HttpPost("AddRosary")]
         public async Task<IActionResult> AddRosary([FromBody] RosaryAddRrquest request)
         {
@@ -126,6 +131,7 @@ namespace WebAPI
                 return BadRequest($"Błąd: {ex.Message}");
             }
         }
+        [Authorize(Roles = "0,1,2")]
         [HttpPut("ModifyMeditation")]
         public async Task<IActionResult> ModifyMeditation([FromBody] Meditation request) {
             var Meditation = await _context.Meditations.FirstOrDefaultAsync(ur => ur.Title == request.Title && ur.Date==request.Date);
@@ -138,6 +144,7 @@ namespace WebAPI
             await _context.SaveChangesAsync();
             return Ok(new { message = "zmieniono treść rozważania" });
         }
+        [Authorize(Roles = "0,1,2")]
         [HttpGet("usersShow/{UserRole}")]
         public async Task<IActionResult> UsersPrivilagiesShow(int UserRole)
         {
@@ -163,18 +170,19 @@ namespace WebAPI
             return Ok(users);
         }
 
-     /*   [HttpPut("UpdateRole")]
-        public async Task<IActionResult> updateRole ([FromBody]UpdateUserRequest request)
-        {
-            var user = await _context.Users.FirstOrDefaultAsync(ur => ur.Id==request.Id);
-            if (user == null)
-            {
-                return NotFound("Błąd bazy danych");
-            }
-            user.Role = request.Role;
-            await _context.SaveChangesAsync();
-            return Ok(new { message = "zmieniono uprawnienia" });
-        }*/
+        /*   [HttpPut("UpdateRole")]
+           public async Task<IActionResult> updateRole ([FromBody]UpdateUserRequest request)
+           {
+               var user = await _context.Users.FirstOrDefaultAsync(ur => ur.Id==request.Id);
+               if (user == null)
+               {
+                   return NotFound("Błąd bazy danych");
+               }
+               user.Role = request.Role;
+               await _context.SaveChangesAsync();
+               return Ok(new { message = "zmieniono uprawnienia" });
+           }*/
+        [Authorize(Roles = "0,1")]
         [HttpGet("MainZelatorsShow")]
         public async Task<IActionResult> MainZelatorsShow()
         {
@@ -195,6 +203,7 @@ namespace WebAPI
 
             return Ok(names);
         }
+        [Authorize(Roles = "0,1")]
         [HttpPost("AddParish")]
         public async Task<IActionResult> AddParish([FromBody] ParishAddRequest request)
         {
@@ -229,6 +238,7 @@ namespace WebAPI
                 return BadRequest($"Błąd: {ex.Message}");
             }
         }
+        [Authorize(Roles = "0,1,2")]
         [HttpPut("UpdatePermissions")]
         public async Task<IActionResult> UpdatePermissions([FromBody] UpdateUserRequest request)
         {
@@ -241,6 +251,7 @@ namespace WebAPI
             await _context.SaveChangesAsync();
             return Ok();
         }
+        [Authorize(Roles ="0")]
         [HttpGet("ConsentsShow")]
         public async Task<IActionResult> ConsentsShow()
         {
@@ -264,6 +275,7 @@ namespace WebAPI
 
             return Ok(names);
         }
+        [Authorize(Roles = "0,1,2")]
         [HttpDelete("deleteExternalNumber/{userId}/{rosaryId}")]
         public async Task<IActionResult> DeleteExternalNumber(int userId, int rosaryId)
         {
@@ -280,6 +292,7 @@ namespace WebAPI
 
             return Ok(new { message = "Użytkownik został usunięty z róży." });
         }
+        [Authorize(Roles = "0,1,2")]
         [HttpPost("AddExternalMember")]
         public async Task<IActionResult> AddExternalMember([FromBody] ExternalMemberRequest request)
         {
@@ -318,6 +331,7 @@ namespace WebAPI
                 return BadRequest($"Błąd: {ex.ToString()}");
             }
         }
+        [Authorize(Roles = "0,1,2")]
         [HttpPut("UpdateExternalMember")]
         public async Task<IActionResult> UpdateExternalMember([FromBody] UpdateExternalMemberRequest request)
         {
