@@ -18,6 +18,7 @@ namespace WebAPI.Data
         public DbSet<Parish> Parishes { get; set; }
         public DbSet<ExternalMember> ExternalMembers { get; set; }
         public DbSet<UserConsent> UserConsents { get; set; }
+        public DbSet<ErrorReport> ErrorReports { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
