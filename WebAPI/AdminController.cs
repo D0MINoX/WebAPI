@@ -246,8 +246,8 @@ namespace WebAPI
             if (user == null) return NotFound();
 
             user.Role = request.Role;
-            user.canSendSMS = request.CanSendSMS; 
-
+            user.canSendSMS = request.CanSendSMS;
+            user.TokenVersion++;
             await _context.SaveChangesAsync();
             return Ok();
         }
