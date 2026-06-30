@@ -33,7 +33,7 @@ namespace WebAPI
             var query = _context.Meditations
         .Where(m => m.Title.ToLower() == title.ToLower());
           
-            if (date.HasValue && date > 0)
+            if (date.HasValue)
             {
                 var meditation = await query
                     .Select(m => new {
