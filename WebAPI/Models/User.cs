@@ -10,6 +10,7 @@
         public  int Role {  get; set; }
         public int? Parish { get; set; }
         public bool canSendSMS { get; set; }
+        public int TokenVersion { get; set; }
         public virtual ICollection<UsersRosary> UserRosaries { get; set; }
 
     }

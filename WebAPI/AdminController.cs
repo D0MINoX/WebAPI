@@ -246,8 +246,8 @@ namespace WebAPI
             if (user == null) return NotFound();
 
             user.Role = request.Role;
-            user.canSendSMS = request.CanSendSMS; 
-
+            user.canSendSMS = request.CanSendSMS;
+            user.TokenVersion++;
             await _context.SaveChangesAsync();
             return Ok();
         }
@@ -342,6 +342,34 @@ namespace WebAPI
             user.PhoneNumber = request.PhoneNumber;
             await _context.SaveChangesAsync();
             return Ok();
+        }
+        /* do dopracowania usuwać można tylko mniejsze role*/
+        [Authorize(Roles = "0,1,2")]
+        [HttpDelete("deleteUser")]
+        public async Task<IActionResult> DeleteAccount([FromBody] DeleteRequest request)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == request.Id);
+
+            if (user == null)
+            {
+                return Unauthorized("Nieznaleziono");
+            }
+            else
+            {
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    _context.Users.Remove(user);
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return Ok(new { message = "Konto zostało usunięte" });
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return StatusCode(500, $"Błąd: {ex.Message} | Inner: {ex.InnerException?.Message}");
+                }
+            }
         }
     }
 }

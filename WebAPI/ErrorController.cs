@@ -29,10 +29,10 @@ namespace WebAPI.Controllers
                 return BadRequest("Opis błędu jest wymagany.");
             }
 
-            errorReport.CreatedAt = DateTime.UtcNow; // Wypełnienie daty utworzenia
-            errorReport.Status = "Nowe";            // Domyślny status zgłoszenia
+            errorReport.CreatedAt = DateTime.UtcNow; 
+            errorReport.Status = "Nowe";            
 
-            // Id nie trzeba ustawiać, bo generuje je baza (AUTO_INCREMENT)
+        
             await _context.ErrorReports.AddAsync(errorReport);
             await _context.SaveChangesAsync();
 

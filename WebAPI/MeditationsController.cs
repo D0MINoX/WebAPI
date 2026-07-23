@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using MySqlConnector;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
 using System.Security.Claims;
@@ -17,10 +19,12 @@ namespace WebAPI
     {
          private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly string _connectionString;
         public MeditationsController(ApplicationDbContext context, IConfiguration configuration)
         {
             _context = context;
             _configuration = configuration;
+            _connectionString = _configuration.GetConnectionString("DefaultConnection");
         }
         [AllowAnonymous]
         [HttpGet("search")]
@@ -33,7 +37,7 @@ namespace WebAPI
             var query = _context.Meditations
         .Where(m => m.Title.ToLower() == title.ToLower());
           
-            if (date.HasValue && date > 0)
+            if (date.HasValue)
             {
                 var meditation = await query
                     .Select(m => new {
@@ -56,6 +60,39 @@ namespace WebAPI
                 .ToListAsync();
 
             return Ok(allMeditations);
+        }
+        [AllowAnonymous]
+        [HttpPost("RecordPrayer")]
+        public async Task<IActionResult> RecordPrayer([FromBody] Record request)
+        {
+            if (request == null || request.UserId <= 0)
+            {
+                return BadRequest(new { message = "Nieprawidłowe dane użytkownika." });
+            }
+
+            try
+            {
+                using (var connection = new MySqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    using (var command = new MySqlCommand("RecordPrayer", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+
+                        command.Parameters.AddWithValue("p_UserId", request.UserId);
+                        command.Parameters.AddWithValue("p_Date", request.Date.Date);
+
+                        await command.ExecuteNonQueryAsync();
+                    }
+                }
+
+                return Ok(new { message = "Modlitwa została zarejestrowana." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Błąd bazy danych.", details = ex.Message });
+            }
         }
     }
 }
